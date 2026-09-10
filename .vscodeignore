@@ -1,0 +1,12 @@
+.git/**
+.github/**
+.vscode/**
+
+node_modules/**
+
+src/webview.js
+
+
+settings.json
+
+*.vsix

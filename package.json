@@ -1,0 +1,152 @@
+{
+  "name": "minimal-blender-preview",
+  "displayName": "Minimal Blender Viewer",
+  "description": "Minimal Blender .blend viewer for VS Code",
+  "version": "1.0.0",
+  "publisher": "dummefil",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dummefil/minimal-blender-preview.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onCustomEditor:minimalBlenderViewer.blendViewer"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "minimalBlenderViewer.blendViewer",
+        "displayName": "Blender Preview",
+        "selector": [
+          {
+            "filenamePattern": "*.blend"
+          },
+          {
+            "filenamePattern": "*.blend1"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "configuration": {
+      "title": "Minimal Blender Viewer",
+
+      "properties": {
+        "minimalBlenderViewer.blenderPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Blender executable. Empty means auto-detect."
+        },
+
+        "minimalBlenderViewer.cacheDirectory": {
+          "type": "string",
+          "default": "${tmpdir}/minimal-blender-preview",
+          "description": "Directory used for generated GLB previews."
+        },
+
+        "minimalBlenderViewer.cacheMaxAgeHours": {
+          "type": "number",
+          "default": 24,
+          "minimum": 0,
+          "description": "Maximum age of cached preview files in hours."
+        },
+
+        "minimalBlenderViewer.cacheMaxSizeMB": {
+          "type": "number",
+          "default": 500,
+          "minimum": 1,
+          "description": "Maximum cache size in MB."
+        },
+
+        "minimalBlenderViewer.blenderTimeoutSeconds": {
+          "type": "number",
+          "default": 120,
+          "minimum": 5,
+          "description": "Maximum Blender export time."
+        },
+
+        "minimalBlenderViewer.autoReload": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reload preview when .blend file changes."
+        },
+
+        "minimalBlenderViewer.allowBlenderAutoExec": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow embedded Blender Python scripts to execute."
+        },
+
+        "minimalBlenderViewer.exportApplyModifiers": {
+          "type": "boolean",
+          "default": true
+        },
+
+        "minimalBlenderViewer.exportMaterials": {
+          "type": "boolean",
+          "default": true
+        },
+
+        "minimalBlenderViewer.exportAnimations": {
+          "type": "boolean",
+          "default": false
+        },
+
+        "minimalBlenderViewer.exportCameras": {
+          "type": "boolean",
+          "default": false
+        },
+
+        "minimalBlenderViewer.exportLights": {
+          "type": "boolean",
+          "default": false
+        },
+
+        "minimalBlenderViewer.showGrid": {
+          "type": "boolean",
+          "default": true
+        },
+
+        "minimalBlenderViewer.wireframe": {
+          "type": "boolean",
+          "default": false
+        },
+
+        "minimalBlenderViewer.background": {
+          "type": "string",
+          "default": "theme"
+        },
+
+        "minimalBlenderViewer.cameraFov": {
+          "type": "number",
+          "default": 45,
+          "minimum": 10,
+          "maximum": 120
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check src/extension.js",
+    "build": "esbuild src/webview.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=dist/webview.js",
+    "build:dev": "esbuild src/webview.js --bundle --sourcemap --format=iife --platform=browser --target=es2020 --outfile=dist/webview.js",
+    "watch": "esbuild src/webview.js --bundle --sourcemap --format=iife --platform=browser --target=es2020 --watch --outfile=dist/webview.js",
+    "package": "npx @vscode/vsce package --allow-missing-repository --out minimal-blender-preview.vsix",
+    "release": "npm run check && npm run build && npm run package",
+    "install:local": "code --install-extension minimal-blender-preview.vsix --force",
+    "release:install": "npm run release && npm run install:local"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.25.0",
+    "three": "^0.164.1"
+  }
+}

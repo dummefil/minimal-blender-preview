@@ -1,0 +1,19 @@
+{
+  "minimalBlenderViewer.blenderPath": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\blender.exe",
+
+  "minimalBlenderViewer.cacheDirectory": "${tmpdir}/minimal-blender-preview",
+
+  "minimalBlenderViewer.cacheMaxAgeHours": 24,
+  "minimalBlenderViewer.cacheMaxSizeMB": 500,
+
+  "minimalBlenderViewer.autoReload": true,
+
+  "minimalBlenderViewer.exportApplyModifiers": true,
+  "minimalBlenderViewer.exportMaterials": true,
+
+  "minimalBlenderViewer.showGrid": true,
+  "minimalBlenderViewer.wireframe": false,
+
+  "minimalBlenderViewer.background": "theme",
+  "minimalBlenderViewer.cameraFov": 45
+}
