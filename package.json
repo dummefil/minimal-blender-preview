@@ -1,8 +1,9 @@
 {
   "name": "minimal-blender-preview",
   "displayName": "Minimal Blender Viewer",
+  "icon": "logo.png",
   "description": "Minimal Blender .blend viewer for VS Code",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "dummefil",
   "license": "MIT",
   "repository": {
@@ -38,93 +39,77 @@
     ],
     "configuration": {
       "title": "Minimal Blender Viewer",
-
       "properties": {
         "minimalBlenderViewer.blenderPath": {
           "type": "string",
           "default": "",
           "description": "Path to Blender executable. Empty means auto-detect."
         },
-
         "minimalBlenderViewer.cacheDirectory": {
           "type": "string",
           "default": "${tmpdir}/minimal-blender-preview",
           "description": "Directory used for generated GLB previews."
         },
-
         "minimalBlenderViewer.cacheMaxAgeHours": {
           "type": "number",
           "default": 24,
           "minimum": 0,
           "description": "Maximum age of cached preview files in hours."
         },
-
         "minimalBlenderViewer.cacheMaxSizeMB": {
           "type": "number",
           "default": 500,
           "minimum": 1,
           "description": "Maximum cache size in MB."
         },
-
         "minimalBlenderViewer.blenderTimeoutSeconds": {
           "type": "number",
           "default": 120,
           "minimum": 5,
           "description": "Maximum Blender export time."
         },
-
         "minimalBlenderViewer.autoReload": {
           "type": "boolean",
           "default": true,
           "description": "Reload preview when .blend file changes."
         },
-
         "minimalBlenderViewer.allowBlenderAutoExec": {
           "type": "boolean",
           "default": false,
           "description": "Allow embedded Blender Python scripts to execute."
         },
-
         "minimalBlenderViewer.exportApplyModifiers": {
           "type": "boolean",
           "default": true
         },
-
         "minimalBlenderViewer.exportMaterials": {
           "type": "boolean",
           "default": true
         },
-
         "minimalBlenderViewer.exportAnimations": {
           "type": "boolean",
           "default": false
         },
-
         "minimalBlenderViewer.exportCameras": {
           "type": "boolean",
           "default": false
         },
-
         "minimalBlenderViewer.exportLights": {
           "type": "boolean",
           "default": false
         },
-
         "minimalBlenderViewer.showGrid": {
           "type": "boolean",
           "default": true
         },
-
         "minimalBlenderViewer.wireframe": {
           "type": "boolean",
           "default": false
         },
-
         "minimalBlenderViewer.background": {
           "type": "string",
           "default": "theme"
         },
-
         "minimalBlenderViewer.cameraFov": {
           "type": "number",
           "default": 45,
