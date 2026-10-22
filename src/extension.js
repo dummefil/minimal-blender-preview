@@ -10,6 +10,12 @@ const VIEW_TYPE = 'minimalBlenderViewer.blendViewer';
 
 const THREE_VERSION = '0.164.1';
 
+const PLAY_ICON =
+    '\u25B6\uFE0E';
+
+const STOP_ICON =
+    '\u25A0';
+
 const openPanels = new Set();
 
 class BlendDocument {
@@ -183,7 +189,7 @@ function getSettings(fileUri) {
         exportAnimations: Boolean(
             getConfig(
                 'exportAnimations',
-                false
+                true
             )
         ),
 
@@ -566,6 +572,7 @@ requested = {
             ? 'True'
             : 'False'
     },
+    "export_animation_mode": "ACTIONS",
     "export_cameras": ${
         settings.exportCameras
             ? 'True'
@@ -1394,6 +1401,244 @@ canvas {
         auto;
 }
 
+.hidden {
+    display:
+        none !important;
+}
+
+#animations {
+    position:
+        absolute;
+
+    top:
+        10px;
+
+    right:
+        10px;
+
+    width:
+        260px;
+
+    max-height:
+        calc(100% - 20px);
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    background:
+        var(
+            --vscode-editorWidget-background,
+            var(
+                --vscode-sideBar-background,
+                var(
+                    --vscode-editor-background
+                )
+            )
+        );
+
+    border:
+        1px solid
+        var(
+            --vscode-editorWidget-border,
+            var(
+                --vscode-panel-border,
+                rgba(
+                    128,
+                    128,
+                    128,
+                    .3
+                )
+            )
+        );
+
+    border-radius:
+        4px;
+
+    box-shadow:
+        0 2px 8px
+        var(
+            --vscode-widget-shadow,
+            rgba(
+                0,
+                0,
+                0,
+                .35
+            )
+        );
+
+    font-size:
+        12px;
+}
+
+.animations-header {
+    flex: none;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap: 6px;
+
+    padding:
+        6px 8px;
+
+    border-bottom:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+}
+
+.animations-header__title {
+    margin-right:
+        auto;
+
+    font-weight:
+        600;
+}
+
+.animations-header button {
+    min-height:
+        22px;
+
+    padding:
+        0 6px;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap: 4px;
+
+    font-size:
+        11px;
+}
+
+#animation-list {
+    overflow-y:
+        auto;
+
+    padding:
+        4px 0;
+}
+
+.animation-item {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap: 8px;
+
+    padding:
+        4px 8px;
+
+    cursor:
+        pointer;
+
+    user-select:
+        none;
+}
+
+.animation-item:hover {
+    background:
+        var(
+            --vscode-list-hoverBackground,
+            rgba(
+                128,
+                128,
+                128,
+                .15
+            )
+        );
+}
+
+.animation-item.active {
+    color:
+        var(
+            --vscode-list-activeSelectionForeground,
+            inherit
+        );
+
+    background:
+        var(
+            --vscode-list-inactiveSelectionBackground,
+            rgba(
+                128,
+                128,
+                128,
+                .25
+            )
+        );
+}
+
+.animation-item__name {
+    flex: 1;
+
+    min-width:
+        0;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+}
+
+.animation-item__duration {
+    color:
+        var(
+            --vscode-descriptionForeground
+        );
+}
+
+.animation-item .icon,
+.animations-header .icon {
+    flex: none;
+
+    width:
+        16px;
+
+    text-align:
+        center;
+
+    line-height:
+        1;
+}
+
+.icon--play {
+    color:
+        var(
+            --vscode-testing-iconPassed,
+            #3fb950
+        );
+}
+
+.icon--stop {
+    color:
+        var(
+            --vscode-testing-iconFailed,
+            #f85149
+        );
+}
+
 </style>
 
 </head>
@@ -1425,6 +1670,14 @@ canvas {
             Grid
         </button>
 
+        <button
+            id="anims"
+            type="button"
+            class="hidden"
+        >
+            Animations
+        </button>
+
         <span class="spacer">
 
             ${
@@ -1450,6 +1703,40 @@ canvas {
         <div id="error">
         </div>
 
+        <div
+            id="animations"
+            class="hidden"
+        >
+
+            <div class="animations-header">
+
+                <span class="animations-header__title">
+                    Animations
+                </span>
+
+                <button
+                    id="play-all"
+                    type="button"
+                >
+                    <span class="icon icon--play">${PLAY_ICON}</span>
+                    Play All
+                </button>
+
+                <button
+                    id="stop-all"
+                    type="button"
+                >
+                    <span class="icon icon--stop">${STOP_ICON}</span>
+                    Stop All
+                </button>
+
+            </div>
+
+            <div id="animation-list">
+            </div>
+
+        </div>
+
     </div>
 
     <div id="status">
@@ -1468,6 +1755,10 @@ canvas {
 
         <span id="materials">
             Materials: -
+        </span>
+
+        <span id="animation-count">
+            Animations: -
         </span>
 
     </div>
@@ -1520,6 +1811,18 @@ const BACKGROUND =
 
 const CAMERA_FOV =
     ${fov};
+
+
+const PLAY_ICON =
+    ${JSON.stringify(
+        PLAY_ICON
+    )};
+
+
+const STOP_ICON =
+    ${JSON.stringify(
+        STOP_ICON
+    )};
 
 
 const canvas =
@@ -1708,6 +2011,320 @@ let wireframe =
 
 let gridVisible =
     INITIAL_GRID;
+
+let mixer = null;
+
+let clips = [];
+
+const clipItems =
+    new Map();
+
+const clock =
+    new THREE.Clock();
+
+
+const animsButton =
+    document
+        .getElementById(
+            'anims'
+        );
+
+
+const animationsPanel =
+    document
+        .getElementById(
+            'animations'
+        );
+
+
+const animationList =
+    document
+        .getElementById(
+            'animation-list'
+        );
+
+
+function setClipPlaying(
+    clip,
+    playing
+) {
+    if (!mixer) {
+        return;
+    }
+
+    const action =
+        mixer.clipAction(
+            clip
+        );
+
+    if (playing) {
+        if (
+            !action.isRunning()
+        ) {
+            action
+                .reset()
+                .play();
+        }
+    } else {
+        action.stop();
+    }
+
+    const item =
+        clipItems.get(
+            clip
+        );
+
+    if (item) {
+        item.element
+            .classList
+            .toggle(
+                'active',
+                playing
+            );
+
+        item.icon.textContent =
+            playing
+                ? STOP_ICON
+                : PLAY_ICON;
+
+        item.icon.className =
+            playing
+                ? 'icon icon--stop'
+                : 'icon icon--play';
+    }
+}
+
+
+function isClipPlaying(
+    clip
+) {
+    return Boolean(
+        mixer &&
+        mixer
+            .clipAction(
+                clip
+            )
+            .isRunning()
+    );
+}
+
+
+function setAllClipsPlaying(
+    playing
+) {
+    for (
+        const clip
+        of clips
+    ) {
+        setClipPlaying(
+            clip,
+            playing
+        );
+    }
+}
+
+
+function setupAnimations(
+    animations
+) {
+    clips =
+        animations ||
+        [];
+
+    clipItems.clear();
+
+    animationList.textContent =
+        '';
+
+    document
+        .getElementById(
+            'animation-count'
+        )
+        .textContent =
+            'Animations: ' +
+            clips.length
+                .toLocaleString();
+
+    if (
+        clips.length ===
+        0
+    ) {
+        return;
+    }
+
+    mixer =
+        new THREE.AnimationMixer(
+            root
+        );
+
+    clips.forEach(
+        (
+            clip,
+            index
+        ) => {
+            const element =
+                document
+                    .createElement(
+                        'div'
+                    );
+
+            element.className =
+                'animation-item';
+
+            const icon =
+                document
+                    .createElement(
+                        'span'
+                    );
+
+            icon.className =
+                'icon icon--play';
+
+            icon.textContent =
+                PLAY_ICON;
+
+            const name =
+                document
+                    .createElement(
+                        'span'
+                    );
+
+            name.className =
+                'animation-item__name';
+
+            name.textContent =
+                clip.name ||
+                'Animation ' +
+                (index + 1);
+
+            name.title =
+                name.textContent;
+
+            const duration =
+                document
+                    .createElement(
+                        'span'
+                    );
+
+            duration.className =
+                'animation-item__duration';
+
+            duration.textContent =
+                clip.duration
+                    .toFixed(2) +
+                's';
+
+            element.append(
+                icon,
+                name,
+                duration
+            );
+
+            element.addEventListener(
+                'click',
+                () => {
+                    setClipPlaying(
+                        clip,
+                        !isClipPlaying(
+                            clip
+                        )
+                    );
+                }
+            );
+
+            clipItems.set(
+                clip,
+                {
+                    element,
+                    icon
+                }
+            );
+
+            animationList
+                .appendChild(
+                    element
+                );
+        }
+    );
+
+    animsButton.textContent =
+        'Animations (' +
+        clips.length +
+        ')';
+
+    animsButton
+        .classList
+        .remove(
+            'hidden'
+        );
+
+    animsButton
+        .classList
+        .add(
+            'active'
+        );
+
+    animationsPanel
+        .classList
+        .remove(
+            'hidden'
+        );
+
+    setClipPlaying(
+        clips[0],
+        true
+    );
+}
+
+
+animsButton
+    .addEventListener(
+        'click',
+        () => {
+            const visible =
+                animationsPanel
+                    .classList
+                    .toggle(
+                        'hidden'
+                    ) ===
+                false;
+
+            animsButton
+                .classList
+                .toggle(
+                    'active',
+                    visible
+                );
+        }
+    );
+
+
+document
+    .getElementById(
+        'play-all'
+    )
+    .addEventListener(
+        'click',
+        () => {
+            setAllClipsPlaying(
+                true
+            );
+        }
+    );
+
+
+document
+    .getElementById(
+        'stop-all'
+    )
+    .addEventListener(
+        'click',
+        () => {
+            setAllClipsPlaying(
+                false
+            );
+        }
+    );
 
 
 function setWireframe(
@@ -2130,6 +2747,10 @@ loader.load(
 
         fitModel();
 
+        setupAnimations(
+            gltf.animations
+        );
+
         loading.style.display =
             'none';
     },
@@ -2197,6 +2818,13 @@ resize();
 
 
 function animate() {
+    const delta =
+        clock.getDelta();
+
+    mixer?.update(
+        delta
+    );
+
     controls.update();
 
     renderer.render(
