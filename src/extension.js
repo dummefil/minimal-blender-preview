@@ -541,9 +541,16 @@ function runProcess(
     );
 }
 
+/*
+ * lodLevel limits the export to one level
+ * of detail: objects with a different
+ * _LOD<n> suffix (and their children) are
+ * left out, everything else is kept.
+ */
 function buildExportScript(
     outputPath,
-    settings
+    settings,
+    lodLevel = null
 ) {
     const safeOutputPath =
         JSON.stringify(
@@ -555,9 +562,18 @@ function buildExportScript(
 
     return `
 import bpy
+import re
 import traceback
 
 output_path = ${safeOutputPath}
+
+lod_level = ${
+    Number.isInteger(
+        lodLevel
+    )
+        ? lodLevel
+        : 'None'
+}
 
 requested = {
     "filepath": output_path,
@@ -589,6 +605,47 @@ requested = {
             : 'NONE'
     }"
 }
+
+
+def other_lod(obj):
+    while obj is not None:
+        match = re.search(
+            r"LOD[-_. ]?([0-9]+)$",
+            obj.name,
+            re.IGNORECASE
+        )
+
+        if match:
+            return int(match.group(1)) != lod_level
+
+        obj = obj.parent
+
+    return False
+
+
+if lod_level is not None:
+    keep = [
+        obj
+        for obj in bpy.context.view_layer.objects
+        if not other_lod(obj)
+    ]
+
+    for obj in bpy.context.view_layer.objects:
+        obj.select_set(False)
+
+    for obj in keep:
+        obj.hide_set(False)
+        obj.hide_viewport = False
+        obj.select_set(True)
+
+    requested["use_selection"] = True
+
+    print(
+        "[MinimalBlenderViewer] LOD",
+        lod_level,
+        "objects:",
+        [obj.name for obj in keep]
+    )
 
 try:
     properties = {
@@ -878,6 +935,54 @@ async function convertBlendToGlb(
         };
     }
 
+    await runBlenderExport(
+        sourcePath,
+        outputPath,
+        settings,
+        cacheKey
+    );
+
+    if (
+        !fs.existsSync(
+            outputPath
+        )
+    ) {
+        throw new Error(
+            'Blender finished successfully, but no GLB preview was created.'
+        );
+    }
+
+    await cleanupCache(
+        settings,
+        new Set([
+            outputPath
+        ])
+    );
+
+    return {
+        outputPath,
+        settings,
+        fromCache: false
+    };
+}
+
+/*
+ * Runs Blender on the source file with the
+ * glTF export script. Temporary files are
+ * named after scratchName in the cache
+ * directory and removed afterwards.
+ */
+async function runBlenderExport(
+    sourcePath,
+    outputPath,
+    settings,
+    scratchName,
+    lodLevel = null
+) {
+    ensureDirectory(
+        settings.cacheDirectory
+    );
+
     let inputPath =
         sourcePath;
 
@@ -892,7 +997,7 @@ async function convertBlendToGlb(
         temporaryBlendPath =
             path.join(
                 settings.cacheDirectory,
-                `${cacheKey}.source.blend`
+                `${scratchName}.source.blend`
             );
 
         fs.copyFileSync(
@@ -907,14 +1012,15 @@ async function convertBlendToGlb(
     const pythonScriptPath =
         path.join(
             settings.cacheDirectory,
-            `${cacheKey}.export.py`
+            `${scratchName}.export.py`
         );
 
     fs.writeFileSync(
         pythonScriptPath,
         buildExportScript(
             outputPath,
-            settings
+            settings,
+            lodLevel
         ),
         'utf8'
     );
@@ -970,6 +1076,103 @@ async function convertBlendToGlb(
             } catch {}
         }
     }
+}
+
+async function exportLod(
+    record,
+    level
+) {
+    const sourceUri =
+        record.document.uri;
+
+    const sourcePath =
+        sourceUri.fsPath;
+
+    const baseName =
+        path
+            .basename(
+                sourcePath
+            )
+            .replace(
+                /\.blend1?$/i,
+                ''
+            )
+            .replace(
+                /[-_. ]?LOD[-_. ]?[0-9]+$/i,
+                ''
+            );
+
+    const target =
+        await vscode.window
+            .showSaveDialog({
+                defaultUri:
+                    vscode.Uri.file(
+                        path.join(
+                            path.dirname(
+                                sourcePath
+                            ),
+                            `${baseName}_LOD${level}.glb`
+                        )
+                    ),
+
+                filters: {
+                    'glTF Binary': [
+                        'glb'
+                    ]
+                },
+
+                saveLabel:
+                    `Export LOD${level}`
+            });
+
+    if (!target) {
+        return false;
+    }
+
+    const settings =
+        getSettings(
+            sourceUri
+        );
+
+    const outputPath =
+        target.fsPath;
+
+    const scratchName =
+        'lod-export-' +
+        createHash(
+            sourcePath +
+            Date.now()
+        )
+            .slice(
+                0,
+                12
+            );
+
+    try {
+        fs.unlinkSync(
+            outputPath
+        );
+    } catch {}
+
+    await vscode.window
+        .withProgress(
+            {
+                location:
+                    vscode.ProgressLocation
+                        .Notification,
+
+                title:
+                    `Exporting LOD${level} with Blender…`
+            },
+            () =>
+                runBlenderExport(
+                    sourcePath,
+                    outputPath,
+                    settings,
+                    scratchName,
+                    level
+                )
+        );
 
     if (
         !fs.existsSync(
@@ -977,22 +1180,70 @@ async function convertBlendToGlb(
         )
     ) {
         throw new Error(
-            'Blender finished successfully, but no GLB preview was created.'
+            'Blender finished successfully, but no GLB was written.'
         );
     }
 
-    await cleanupCache(
-        settings,
-        new Set([
-            outputPath
-        ])
-    );
+    vscode.window
+        .showInformationMessage(
+            `Exported LOD${level} to ${path.basename(outputPath)}.`
+        );
 
-    return {
-        outputPath,
-        settings,
-        fromCache: false
-    };
+    return true;
+}
+
+async function handleWebviewMessage(
+    record,
+    message
+) {
+    if (
+        message?.type !==
+            'exportLod' ||
+        !Number.isInteger(
+            message.level
+        )
+    ) {
+        return;
+    }
+
+    let exported =
+        false;
+
+    try {
+        exported =
+            await exportLod(
+                record,
+                message.level
+            );
+    } catch (error) {
+        vscode.window
+            .showErrorMessage(
+                `LOD${message.level} export failed: ${
+                    (
+                        error?.message ||
+                        String(error)
+                    ).slice(
+                        0,
+                        500
+                    )
+                }`
+            );
+    }
+
+    if (
+        !record.disposed
+    ) {
+        record.panel.webview
+            .postMessage({
+                type:
+                    'exportLodDone',
+
+                level:
+                    message.level,
+
+                exported
+            });
+    }
 }
 
 function escapeHtml(value) {
@@ -1670,6 +1921,19 @@ button:disabled {
             --vscode-testing-iconFailed,
             #f85149
         );
+}
+
+.lod-export {
+    flex: none;
+
+    min-height:
+        20px;
+
+    padding:
+        0 6px;
+
+    font-size:
+        11px;
 }
 
 </style>
@@ -2411,6 +2675,48 @@ let activeLod = null;
 const lodItems =
     new Map();
 
+const lodExportButtons =
+    new Map();
+
+/*
+ * Missing outside a VS Code webview;
+ * export buttons are left out then.
+ */
+const vscodeApi =
+    typeof acquireVsCodeApi ===
+    'function'
+        ? acquireVsCodeApi()
+        : null;
+
+
+window.addEventListener(
+    'message',
+    event => {
+        const message =
+            event.data;
+
+        if (
+            message?.type !==
+            'exportLodDone'
+        ) {
+            return;
+        }
+
+        const button =
+            lodExportButtons.get(
+                message.level
+            );
+
+        if (button) {
+            button.disabled =
+                false;
+
+            button.textContent =
+                'Export';
+        }
+    }
+);
+
 
 const lodsButton =
     document
@@ -2655,6 +2961,58 @@ function setupLods() {
             name,
             triangles
         );
+
+        if (vscodeApi) {
+            const exportButton =
+                document
+                    .createElement(
+                        'button'
+                    );
+
+            exportButton.type =
+                'button';
+
+            exportButton.className =
+                'lod-export';
+
+            exportButton.textContent =
+                'Export';
+
+            exportButton.title =
+                'Export LOD' +
+                entry.level +
+                ' to .glb';
+
+            exportButton.addEventListener(
+                'click',
+                event => {
+                    event.stopPropagation();
+
+                    exportButton.disabled =
+                        true;
+
+                    exportButton.textContent =
+                        'Exporting…';
+
+                    vscodeApi.postMessage({
+                        type:
+                            'exportLod',
+
+                        level:
+                            entry.level
+                    });
+                }
+            );
+
+            lodExportButtons.set(
+                entry.level,
+                exportButton
+            );
+
+            element.append(
+                exportButton
+            );
+        }
 
         element.addEventListener(
             'click',
@@ -3450,8 +3808,20 @@ class BlendViewerProvider {
             record
         );
 
+        const messageListener =
+            panel.webview
+                .onDidReceiveMessage(
+                    message =>
+                        handleWebviewMessage(
+                            record,
+                            message
+                        )
+                );
+
         panel.onDidDispose(
             () => {
+                messageListener.dispose();
+
                 record.disposed =
                     true;
 

@@ -44,4 +44,6 @@ Blender actions are exported as animation clips (disable with **Export Animation
 
 Objects named with a Unity-style LOD suffix (`Name_LOD0`, `Name_LOD1`, …) are treated as levels of detail. When a file has two or more levels, the **LOD** button opens a panel that lists each level with its triangle count; click a level to show it and hide the others. LOD0 is shown first. With no LODs or a single one, the button is disabled.
 
+Each level has an **Export** button that saves that level as a `.glb` file. You choose where to save it; the default is `<file>_LOD<n>.glb` next to the `.blend`. Blender exports the file with the same settings as the preview, leaving out the objects of the other levels, so the rig, animations and objects without a LOD suffix are included.
+
 If a file opens in another editor, right-click its editor tab, select **Reopen Editor With...**, and choose **Blender Preview**.
