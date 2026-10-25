@@ -40,4 +40,8 @@ Open VS Code Settings and search for **Minimal Blender Viewer** to configure the
 
 Blender actions are exported as animation clips (disable with **Export Animations**). When a file contains animations, an **Animations** panel lists every clip and the first one starts playing: click a clip to play or stop it, or use **Play All** / **Stop All**. Several clips can play at the same time.
 
+## Levels of detail
+
+Objects named with a Unity-style LOD suffix (`Name_LOD0`, `Name_LOD1`, …) are treated as levels of detail. When a file has two or more levels, the **LOD** button opens a panel that lists each level with its triangle count; click a level to show it and hide the others. LOD0 is shown first. With no LODs or a single one, the button is disabled.
+
 If a file opens in another editor, right-click its editor tab, select **Reopen Editor With...**, and choose **Blender Preview**.
