@@ -3,23 +3,13 @@
     "configurations": [
         {
             "name": "Run Blender Preview",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "preLaunchTask": "Prepare preview",
-            "env": {
-                "MINIMAL_BLENDER_PREVIEW_FOCUS": "1",
-                "MINIMAL_BLENDER_PREVIEW_AUTO_RELOAD": "1"
-            },
-            "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}",
-                "--skip-welcome",
-                "--skip-release-notes",
-                "--user-data-dir=${workspaceFolder}/.vscode-test/dev-user-data",
-                "--extensions-dir=${workspaceFolder}/.vscode-test/dev-extensions",
-                "${workspaceFolder}/samples/preview.code-workspace",
-                "${workspaceFolder}/samples/suzanne.blend"
-            ]
+            "type": "node",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 9330,
+            "restart": true,
+            "timeout": 30000,
+            "preLaunchTask": "Start isolated Blender Preview"
         }
     ]
 }

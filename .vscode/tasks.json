@@ -2,8 +2,28 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Start isolated Blender Preview",
+            "type": "process",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/.vscode/launch-preview.js",
+                "${execPath}"
+            ],
+            "dependsOn": [
+                "Prepare preview"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "close": true
+            }
+        },
+        {
             "label": "Prepare preview",
-            "dependsOn": ["Build preview assets", "Prepare preview profile"],
+            "dependsOn": [
+                "Build preview assets",
+                "Prepare preview profile"
+            ],
             "dependsOrder": "sequence",
             "problemMatcher": []
         },
@@ -12,15 +32,23 @@
             "type": "shell",
             "command": "npm run build",
             "problemMatcher": [],
-            "presentation": { "reveal": "never", "close": true }
+            "presentation": {
+                "reveal": "never",
+                "close": true
+            }
         },
         {
             "label": "Prepare preview profile",
             "type": "process",
             "command": "node",
-            "args": ["${workspaceFolder}/.vscode/prepare-preview.js"],
+            "args": [
+                "${workspaceFolder}/.vscode/prepare-preview.js"
+            ],
             "problemMatcher": [],
-            "presentation": { "reveal": "never", "close": true }
+            "presentation": {
+                "reveal": "never",
+                "close": true
+            }
         }
     ]
 }
