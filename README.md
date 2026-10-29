@@ -1,5 +1,7 @@
 # Minimal Blender Viewer
 
+[![Download on VS Code Marketplace](https://img.shields.io/badge/Download-VS%20Code%20Marketplace-0078D4?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=dummefil.minimal-blender-preview)
+
 Preview Blender `.blend` and `.blend1` files directly in Visual Studio Code.
 
 ## Requirements
@@ -61,3 +63,9 @@ On the first run, the preview profile is created with a minimal window and the s
 The development window opens `samples/suzanne.blend`, a sample with two LODs, two animations and a packed texture. You can open your own `.blend` file as well. If Blender is not detected, set **Minimal Blender Viewer: Blender Path** in the development window's settings.
 
 Saving `src/extension.js` automatically restarts the extension host and reopens the preview in the same window. Preview state such as the selected LOD and camera position resets. If the file has a syntax error, the current version stays running and VS Code shows the error. Changes to `package.json` require restarting F5. No VSIX installation is needed for this workflow.
+
+## Publishing
+
+Releases are published directly to the VS Code Marketplace by GitHub Actions using trusted publishing. Create and push a tag in the form `vX.Y.Z` that matches the version in `package.json` and points to a commit on `main`. The workflow checks and builds the extension before publishing; it does not upload release artifacts to GitHub.
+
+The Marketplace publisher must have a trusted publishing policy for repository owner `dummefil`, repository `minimal-blender-preview`, and workflow `publish.yml`.
