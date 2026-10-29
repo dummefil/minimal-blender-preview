@@ -44,6 +44,8 @@ Blender actions are exported as animation clips (disable with **Export Animation
 
 Objects named with a Unity-style LOD suffix (`Name_LOD0`, `Name_LOD1`, …) are treated as levels of detail. When a file has two or more levels, the **LOD** button opens a panel that lists each level with its triangle count; click a level to show it and hide the others. LOD0 is shown first. With no LODs or a single one, the button is disabled.
 
+Each level has an **Export** button that saves that level as a `.glb` file. You choose where to save it; the default is `<file>_LOD<n>.glb` next to the `.blend`. Blender exports the file with the same settings as the preview, leaving out the objects of the other levels, so the rig, animations and objects without a LOD suffix are included.
+
 ## Textures
 
 The **Textures** button opens a panel that lists every image used by the model's materials, with a thumbnail, its resolution, and each material that uses it along with the slot (base color, normal, roughness, emissive, …). An image shared by several slots or materials is listed once. Click a texture to show a larger preview. Files without textures show the button disabled.
