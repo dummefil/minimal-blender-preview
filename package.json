@@ -3,7 +3,7 @@
   "displayName": "Minimal Blender Viewer",
   "icon": "logo.png",
   "description": "Minimal Blender .blend viewer for VS Code",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "publisher": "dummefil",
   "license": "MIT",
   "repository": {
