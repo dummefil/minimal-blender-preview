@@ -1,5 +1,7 @@
 node_modules/
 .vscode-test/
+artifacts/
+.metrics/
 dist/
 *.vsix
 *.log

@@ -103,23 +103,23 @@ test('default settings preserve the safe Blender export policy', () => {
 
 test('preview page carries the model URL, settings and restrictive content policy', () => {
     const webview = { cspSource: 'vscode-resource:', asWebviewUri: () => ({ toString: () => 'vscode-resource:/model.glb' }) };
-    const html = buildViewerHtml(webview, {}, { cameraFov: 150, showGrid: false, wireframe: true, background: 'theme' }, true, { script: 'preview.js', style: 'preview.css' });
+    const html = buildViewerHtml(webview, {}, { cameraFov: 150, showGrid: false, wireframe: true, background: 'theme' }, { script: 'preview.js', style: 'preview.css' });
     assert.match(html, /vscode-resource:\/model\.glb/);
     assert.match(html, /default-src 'none'/);
     assert.match(html, /"cameraFov":120/);
-    assert.match(html, /\bcache\b/);
+    assert.doesNotMatch(html, />\s*(?:cache|fresh export)\s*</i);
 });
 
 test('preview loads Three.js locally without reaching a CDN', () => {
     const webview = { cspSource: 'vscode-resource:', asWebviewUri: uri => ({ toString: () => `vscode-resource:/${uri}` }) };
-    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45 }, false, { script: 'preview.js', style: 'preview.css' });
+    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45 }, { script: 'preview.js', style: 'preview.css' });
     assert.ok(html.includes('vscode-resource:/preview.js'));
     assert.ok(!html.includes('cdn.jsdelivr.net'));
 });
 
 test('preview loads its renderer and styles as separate local assets', () => {
     const webview = { cspSource: 'vscode-resource:', asWebviewUri: uri => ({ toString: () => `vscode-resource:/${uri}` }) };
-    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45 }, false, { script: 'preview.js', style: 'preview.css' });
+    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45 }, { script: 'preview.js', style: 'preview.css' });
     assert.ok(html.includes('vscode-resource:/preview.js'));
     assert.ok(html.includes('vscode-resource:/preview.css'));
     assert.ok(!html.includes('function animate()'));
@@ -127,7 +127,7 @@ test('preview loads its renderer and styles as separate local assets', () => {
 
 test('preview settings cannot inject markup into the webview', () => {
     const webview = { cspSource: 'vscode-resource:', asWebviewUri: uri => ({ toString: () => `vscode-resource:/${uri}` }) };
-    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45, background: '</script><script>alert(1)</script>' }, false, { script: 'preview.js', style: 'preview.css' });
+    const html = buildViewerHtml(webview, 'model.glb', { cameraFov: 45, background: '</script><script>alert(1)</script>' }, { script: 'preview.js', style: 'preview.css' });
     assert.ok(!html.includes('</script><script>alert(1)'));
     assert.ok(html.includes('\\u003c/script>'));
 });

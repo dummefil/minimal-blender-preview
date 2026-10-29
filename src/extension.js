@@ -117,8 +117,6 @@ async function renderPreview(
 
                 result.settings,
 
-                result.fromCache,
-
                 {
                     script: vscode.Uri.joinPath(record.runtimeDirectory, 'preview.js'),
                     style: vscode.Uri.joinPath(record.runtimeDirectory, 'preview.css')

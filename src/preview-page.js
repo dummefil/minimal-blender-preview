@@ -99,7 +99,6 @@ function buildViewerHtml(
     webview,
     glbUri,
     settings,
-    fromCache,
     assets
 ) {
     const modelSource =
@@ -232,16 +231,6 @@ function buildViewerHtml(
         >
             Textures
         </button>
-
-        <span class="spacer">
-
-            ${
-                fromCache
-                    ? 'cache'
-                    : 'fresh export'
-            }
-
-        </span>
 
     </div>
 

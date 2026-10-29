@@ -6,6 +6,7 @@
 html,
 body {
     margin: 0;
+    padding: 0;
 
     width: 100%;
     height: 100%;
@@ -58,6 +59,8 @@ body {
 #toolbar {
     min-height:
         36px;
+
+    overflow-x: auto;
 
     border-bottom:
         1px solid
@@ -219,11 +222,6 @@ canvas {
 
     white-space:
         pre-wrap;
-}
-
-.spacer {
-    margin-left:
-        auto;
 }
 
 .hidden {
