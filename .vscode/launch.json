@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Blender Preview",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "preLaunchTask": "Prepare preview profile",
+            "env": {
+                "MINIMAL_BLENDER_PREVIEW_FOCUS": "1",
+                "MINIMAL_BLENDER_PREVIEW_AUTO_RELOAD": "1"
+            },
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--skip-welcome",
+                "--skip-release-notes",
+                "--user-data-dir=${workspaceFolder}/.vscode-test/dev-user-data",
+                "--extensions-dir=${workspaceFolder}/.vscode-test/dev-extensions",
+                "${workspaceFolder}/samples/preview.code-workspace",
+                "${workspaceFolder}/samples/suzanne.blend"
+            ]
+        }
+    ]
+}

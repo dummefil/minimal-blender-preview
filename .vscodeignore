@@ -1,8 +1,13 @@
 .git/**
 .github/**
 .vscode/**
+.vscode-test/**
 
 node_modules/**
+
+test/**
+artifacts/**
+samples/**
 
 src/webview.js
 

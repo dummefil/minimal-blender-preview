@@ -1137,50 +1137,64 @@ async function exportLod(
     const outputPath =
         target.fsPath;
 
-    const scratchName =
-        'lod-export-' +
-        createHash(
-            sourcePath +
-            Date.now()
-        )
-            .slice(
-                0,
-                12
-            );
-
-    try {
-        fs.unlinkSync(
-            outputPath
-        );
-    } catch {}
-
-    await vscode.window
-        .withProgress(
-            {
-                location:
-                    vscode.ProgressLocation
-                        .Notification,
-
-                title:
-                    `Exporting LOD${level} with Blender…`
-            },
-            () =>
-                runBlenderExport(
-                    sourcePath,
-                    outputPath,
-                    settings,
-                    scratchName,
-                    level
-                )
-        );
-
     if (
-        !fs.existsSync(
-            outputPath
-        )
+        path.extname(outputPath)
+            .toLowerCase() !== '.glb'
     ) {
         throw new Error(
-            'Blender finished successfully, but no GLB was written.'
+            'Choose a .glb output file.'
+        );
+    }
+
+    const scratchName =
+        'lod-export-' +
+        crypto.randomUUID();
+
+    const temporaryOutputPath =
+        path.join(
+            path.dirname(outputPath),
+            `.${scratchName}.glb`
+        );
+
+    try {
+        await vscode.window
+            .withProgress(
+                {
+                    location:
+                        vscode.ProgressLocation
+                            .Notification,
+
+                    title:
+                        `Exporting LOD${level} with Blender…`
+                },
+                () =>
+                    runBlenderExport(
+                        sourcePath,
+                        temporaryOutputPath,
+                        settings,
+                        scratchName,
+                        level
+                    )
+            );
+
+        if (
+            !fs.existsSync(
+                temporaryOutputPath
+            )
+        ) {
+            throw new Error(
+                'Blender finished successfully, but no GLB was written.'
+            );
+        }
+
+        fs.renameSync(
+            temporaryOutputPath,
+            outputPath
+        );
+    } finally {
+        fs.rmSync(
+            temporaryOutputPath,
+            { force: true }
         );
     }
 
@@ -4511,6 +4525,24 @@ async function activate(
                 }
             )
     );
+
+    if (
+        context.extensionMode === vscode.ExtensionMode.Development &&
+        process.env.MINIMAL_BLENDER_PREVIEW_FOCUS === '1'
+    ) {
+        await vscode.commands.executeCommand('workbench.action.closeSidebar');
+        await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
+        await vscode.commands.executeCommand('workbench.action.closePanel');
+    }
+
+    if (
+        context.extensionMode === vscode.ExtensionMode.Development &&
+        process.env.MINIMAL_BLENDER_PREVIEW_AUTO_RELOAD === '1'
+    ) {
+        const devReload = require('../.vscode/dev-reload');
+        devReload.start(context);
+        await devReload.restore(context);
+    }
 }
 
 function deactivate() {

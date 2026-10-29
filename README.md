@@ -44,10 +44,20 @@ Blender actions are exported as animation clips (disable with **Export Animation
 
 Objects named with a Unity-style LOD suffix (`Name_LOD0`, `Name_LOD1`, …) are treated as levels of detail. When a file has two or more levels, the **LOD** button opens a panel that lists each level with its triangle count; click a level to show it and hide the others. LOD0 is shown first. With no LODs or a single one, the button is disabled.
 
-Each level has an **Export** button that saves that level as a `.glb` file. You choose where to save it; the default is `<file>_LOD<n>.glb` next to the `.blend`. Blender exports the file with the same settings as the preview, leaving out the objects of the other levels, so the rig, animations and objects without a LOD suffix are included.
+Each level has an **Export** button that saves it as a `.glb` file. The export keeps the rig, animations and objects without a LOD suffix, and excludes the other levels. An existing destination is replaced only after the export succeeds.
 
 ## Textures
 
 The **Textures** button opens a panel that lists every image used by the model's materials, with a thumbnail, its resolution, and each material that uses it along with the slot (base color, normal, roughness, emissive, …). An image shared by several slots or materials is listed once. Click a texture to show a larger preview. Files without textures show the button disabled.
 
 If a file opens in another editor, right-click its editor tab, select **Reopen Editor With...**, and choose **Blender Preview**.
+
+## Development
+
+Open this repository folder in VS Code, select **Run Blender Preview** in **Run and Debug**, and press **F5**. An Extension Development Host window loads the extension directly from the source. Its settings and installed extensions are kept separately under `.vscode-test/`.
+
+On the first run, the preview profile is created with a minimal window and the standard VS Code shortcuts disabled. Existing profile settings and keybindings are preserved on later runs. The supplied shortcut list was generated from VS Code on Windows; additional shortcuts may exist on other versions or platforms.
+
+The development window opens `samples/suzanne.blend`, a sample with two LODs, two animations and a packed texture. You can open your own `.blend` file as well. If Blender is not detected, set **Minimal Blender Viewer: Blender Path** in the development window's settings.
+
+Saving `src/extension.js` automatically restarts the extension host and reopens the preview in the same window. Preview state such as the selected LOD and camera position resets. If the file has a syntax error, the current version stays running and VS Code shows the error. Changes to `package.json` require restarting F5. No VSIX installation is needed for this workflow.

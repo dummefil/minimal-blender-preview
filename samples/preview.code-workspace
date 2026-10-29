@@ -1,0 +1,21 @@
+{
+    "folders": [{ "path": ".." }],
+    "settings": {
+        "breadcrumbs.showEditorType": false,
+        "workbench.startupEditor": "none",
+        "workbench.welcomePage.experimentalOnboarding": false,
+        "window.commandCenter": false,
+        "window.title": " ",
+        "breadcrumbs.enabled": false,
+        "workbench.activityBar.location": "hidden",
+        "workbench.editor.showTabs": "none",
+        "workbench.editor.editorActionsLocation": "hidden",
+        "workbench.layoutControl.enabled": false,
+        "workbench.statusBar.visible": false,
+        "workbench.secondarySideBar.defaultVisibility": "hidden",
+        "workbench.editorAssociations": {
+            "*.blend": "minimalBlenderViewer.blendViewer",
+            "*.blend1": "minimalBlenderViewer.blendViewer"
+        }
+    }
+}
