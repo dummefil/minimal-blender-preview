@@ -1406,7 +1406,21 @@ canvas {
         none !important;
 }
 
-#animations {
+button:disabled {
+    opacity:
+        .5;
+
+    cursor:
+        default;
+
+    background:
+        var(
+            --vscode-button-secondaryBackground,
+            transparent
+        );
+}
+
+#panels {
     position:
         absolute;
 
@@ -1427,6 +1441,25 @@ canvas {
 
     flex-direction:
         column;
+
+    gap: 8px;
+
+    pointer-events:
+        none;
+}
+
+.panel {
+    min-height:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    pointer-events:
+        auto;
 
     background:
         var(
@@ -1473,7 +1506,7 @@ canvas {
         12px;
 }
 
-.animations-header {
+.panel-header {
     flex: none;
 
     display:
@@ -1500,7 +1533,7 @@ canvas {
         );
 }
 
-.animations-header__title {
+.panel-header__title {
     margin-right:
         auto;
 
@@ -1508,7 +1541,7 @@ canvas {
         600;
 }
 
-.animations-header button {
+.panel-header button {
     min-height:
         22px;
 
@@ -1527,7 +1560,7 @@ canvas {
         11px;
 }
 
-#animation-list {
+.panel-list {
     overflow-y:
         auto;
 
@@ -1535,7 +1568,7 @@ canvas {
         4px 0;
 }
 
-.animation-item {
+.panel-item {
     display:
         flex;
 
@@ -1554,7 +1587,7 @@ canvas {
         none;
 }
 
-.animation-item:hover {
+.panel-item:hover {
     background:
         var(
             --vscode-list-hoverBackground,
@@ -1567,7 +1600,7 @@ canvas {
         );
 }
 
-.animation-item.active {
+.panel-item.active {
     color:
         var(
             --vscode-list-activeSelectionForeground,
@@ -1586,7 +1619,7 @@ canvas {
         );
 }
 
-.animation-item__name {
+.panel-item__name {
     flex: 1;
 
     min-width:
@@ -1602,15 +1635,15 @@ canvas {
         nowrap;
 }
 
-.animation-item__duration {
+.panel-item__meta {
     color:
         var(
             --vscode-descriptionForeground
         );
 }
 
-.animation-item .icon,
-.animations-header .icon {
+.panel-item .icon,
+.panel-header .icon {
     flex: none;
 
     width:
@@ -1678,6 +1711,15 @@ canvas {
             Animations
         </button>
 
+        <button
+            id="lods-button"
+            type="button"
+            title="No LODs in this file"
+            disabled
+        >
+            LOD
+        </button>
+
         <span class="spacer">
 
             ${
@@ -1703,14 +1745,37 @@ canvas {
         <div id="error">
         </div>
 
+        <div id="panels">
+
         <div
-            id="animations"
-            class="hidden"
+            id="lods"
+            class="panel hidden"
         >
 
-            <div class="animations-header">
+            <div class="panel-header">
 
-                <span class="animations-header__title">
+                <span class="panel-header__title">
+                    Level of detail
+                </span>
+
+            </div>
+
+            <div
+                id="lod-list"
+                class="panel-list"
+            >
+            </div>
+
+        </div>
+
+        <div
+            id="animations"
+            class="panel hidden"
+        >
+
+            <div class="panel-header">
+
+                <span class="panel-header__title">
                     Animations
                 </span>
 
@@ -1732,8 +1797,13 @@ canvas {
 
             </div>
 
-            <div id="animation-list">
+            <div
+                id="animation-list"
+                class="panel-list"
+            >
             </div>
+
+        </div>
 
         </div>
 
@@ -2169,7 +2239,7 @@ function setupAnimations(
                     );
 
             element.className =
-                'animation-item';
+                'panel-item';
 
             const icon =
                 document
@@ -2190,7 +2260,7 @@ function setupAnimations(
                     );
 
             name.className =
-                'animation-item__name';
+                'panel-item__name';
 
             name.textContent =
                 clip.name ||
@@ -2207,7 +2277,7 @@ function setupAnimations(
                     );
 
             duration.className =
-                'animation-item__duration';
+                'panel-item__meta';
 
             duration.textContent =
                 clip.duration
@@ -2323,6 +2393,337 @@ document
             setAllClipsPlaying(
                 false
             );
+        }
+    );
+
+
+/*
+ * LOD objects follow the Unity-style
+ * name suffix: Name_LOD0, Name_LOD1, ...
+ */
+const LOD_PATTERN =
+    /LOD[-_. ]?([0-9]+)$/i;
+
+let lodLevels = [];
+
+let activeLod = null;
+
+const lodItems =
+    new Map();
+
+
+const lodsButton =
+    document
+        .getElementById(
+            'lods-button'
+        );
+
+
+const lodsPanel =
+    document
+        .getElementById(
+            'lods'
+        );
+
+
+const lodList =
+    document
+        .getElementById(
+            'lod-list'
+        );
+
+
+function countTriangles(
+    object
+) {
+    let triangles = 0;
+
+    object.traverse(
+        child => {
+            const geometry =
+                child.isMesh &&
+                child.geometry;
+
+            if (!geometry) {
+                return;
+            }
+
+            triangles +=
+                (
+                    geometry.index
+                        ?.count ??
+                    geometry.attributes
+                        .position
+                        ?.count ??
+                    0
+                ) /
+                3;
+        }
+    );
+
+    return triangles;
+}
+
+
+function collectLods(
+    object,
+    levels
+) {
+    const match =
+        LOD_PATTERN.exec(
+            object.name || ''
+        );
+
+    if (
+        match &&
+        object !== root
+    ) {
+        const level =
+            Number(
+                match[1]
+            );
+
+        if (
+            !levels.has(
+                level
+            )
+        ) {
+            levels.set(
+                level,
+                []
+            );
+        }
+
+        levels
+            .get(
+                level
+            )
+            .push(
+                object
+            );
+
+        return;
+    }
+
+    for (
+        const child
+        of object.children
+    ) {
+        collectLods(
+            child,
+            levels
+        );
+    }
+}
+
+
+function setActiveLod(
+    level
+) {
+    activeLod =
+        level;
+
+    for (
+        const entry
+        of lodLevels
+    ) {
+        for (
+            const object
+            of entry.objects
+        ) {
+            object.visible =
+                entry.level ===
+                level;
+        }
+
+        lodItems
+            .get(
+                entry.level
+            )
+            ?.classList
+            .toggle(
+                'active',
+                entry.level ===
+                    level
+            );
+    }
+
+    updateStats();
+}
+
+
+function setupLods() {
+    const levels =
+        new Map();
+
+    collectLods(
+        root,
+        levels
+    );
+
+    lodLevels =
+        [
+            ...levels.entries()
+        ]
+            .sort(
+                (a, b) =>
+                    a[0] -
+                    b[0]
+            )
+            .map(
+                ([
+                    level,
+                    objects
+                ]) => ({
+                    level,
+                    objects
+                })
+            );
+
+    lodItems.clear();
+
+    lodList.textContent =
+        '';
+
+    if (
+        lodLevels.length <
+        2
+    ) {
+        lodsButton.title =
+            lodLevels.length ===
+            1
+                ? 'Only one LOD in this file'
+                : 'No LODs in this file';
+
+        return;
+    }
+
+    for (
+        const entry
+        of lodLevels
+    ) {
+        const element =
+            document
+                .createElement(
+                    'div'
+                );
+
+        element.className =
+            'panel-item';
+
+        const name =
+            document
+                .createElement(
+                    'span'
+                );
+
+        name.className =
+            'panel-item__name';
+
+        name.textContent =
+            'LOD' +
+            entry.level;
+
+        const triangles =
+            document
+                .createElement(
+                    'span'
+                );
+
+        triangles.className =
+            'panel-item__meta';
+
+        triangles.textContent =
+            Math.round(
+                entry.objects
+                    .reduce(
+                        (
+                            total,
+                            object
+                        ) =>
+                            total +
+                            countTriangles(
+                                object
+                            ),
+                        0
+                    )
+            )
+                .toLocaleString() +
+            ' tris';
+
+        element.append(
+            name,
+            triangles
+        );
+
+        element.addEventListener(
+            'click',
+            () => {
+                setActiveLod(
+                    entry.level
+                );
+            }
+        );
+
+        lodItems.set(
+            entry.level,
+            element
+        );
+
+        lodList
+            .appendChild(
+                element
+            );
+    }
+
+    lodsButton.disabled =
+        false;
+
+    lodsButton.title =
+        '';
+
+    lodsButton.textContent =
+        'LOD (' +
+        lodLevels.length +
+        ')';
+
+    lodsButton
+        .classList
+        .add(
+            'active'
+        );
+
+    lodsPanel
+        .classList
+        .remove(
+            'hidden'
+        );
+
+    setActiveLod(
+        lodLevels[0]
+            .level
+    );
+}
+
+
+lodsButton
+    .addEventListener(
+        'click',
+        () => {
+            const visible =
+                lodsPanel
+                    .classList
+                    .toggle(
+                        'hidden'
+                    ) ===
+                false;
+
+            lodsButton
+                .classList
+                .toggle(
+                    'active',
+                    visible
+                );
         }
     );
 
@@ -2557,7 +2958,7 @@ function updateStats() {
         new Set();
 
 
-    root.traverse(
+    root.traverseVisible(
         object => {
             if (
                 !object.isMesh ||
@@ -2738,6 +3139,8 @@ loader.load(
         scene.add(
             root
         );
+
+        setupLods();
 
         updateStats();
 
