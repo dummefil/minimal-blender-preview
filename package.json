@@ -121,10 +121,11 @@
     }
   },
   "scripts": {
-    "check": "node --check src/extension.js",
-    "build": "esbuild src/webview.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=dist/webview.js",
-    "build:dev": "esbuild src/webview.js --bundle --sourcemap --format=iife --platform=browser --target=es2020 --outfile=dist/webview.js",
-    "watch": "esbuild src/webview.js --bundle --sourcemap --format=iife --platform=browser --target=es2020 --watch --outfile=dist/webview.js",
+    "check": "node --check src/extension.js && node --check src/settings.js && node --check src/preview-cache.js && node --check src/preview-conversion.js && node --check src/lod-export.js && node --check src/blender-process.js && node --check src/blender-export-script.js && node --check src/preview-page.js",
+    "test": "node --test",
+    "build": "esbuild src/webview/preview.js src/webview/preview.css --bundle --tree-shaking=false --format=esm --platform=browser --target=es2020 --outdir=dist",
+    "build:dev": "esbuild src/webview/preview.js src/webview/preview.css --bundle --tree-shaking=false --sourcemap --format=esm --platform=browser --target=es2020 --outdir=dist",
+    "watch": "esbuild src/webview/preview.js src/webview/preview.css --bundle --tree-shaking=false --sourcemap --format=esm --platform=browser --target=es2020 --watch --outdir=dist",
     "package": "npx @vscode/vsce package --allow-missing-repository --out minimal-blender-preview.vsix",
     "release": "npm run check && npm run build && npm run package",
     "install:local": "code --install-extension minimal-blender-preview.vsix --force",

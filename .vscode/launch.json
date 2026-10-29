@@ -6,7 +6,7 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "preLaunchTask": "Prepare preview profile",
+            "preLaunchTask": "Prepare preview",
             "env": {
                 "MINIMAL_BLENDER_PREVIEW_FOCUS": "1",
                 "MINIMAL_BLENDER_PREVIEW_AUTO_RELOAD": "1"

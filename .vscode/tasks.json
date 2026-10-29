@@ -2,6 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Prepare preview",
+            "dependsOn": ["Build preview assets", "Prepare preview profile"],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build preview assets",
+            "type": "shell",
+            "command": "npm run build",
+            "problemMatcher": [],
+            "presentation": { "reveal": "never", "close": true }
+        },
+        {
             "label": "Prepare preview profile",
             "type": "process",
             "command": "node",

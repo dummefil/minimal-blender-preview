@@ -1,0 +1,596 @@
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background:
+        var(--vscode-editor-background);
+
+    color:
+        var(--vscode-editor-foreground);
+
+    font-family:
+        var(--vscode-font-family);
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+
+    flex-direction:
+        column;
+}
+
+#toolbar,
+#status {
+    flex: none;
+
+    display: flex;
+
+    align-items:
+        center;
+
+    gap: 8px;
+
+    padding:
+        5px 10px;
+
+    background:
+        var(
+            --vscode-sideBar-background,
+            var(
+                --vscode-editor-background
+            )
+        );
+}
+
+#toolbar {
+    min-height:
+        36px;
+
+    border-bottom:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+}
+
+#status {
+    min-height:
+        26px;
+
+    border-top:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+
+    color:
+        var(
+            --vscode-descriptionForeground
+        );
+
+    font-size:
+        11px;
+}
+
+button {
+    min-height:
+        26px;
+
+    padding:
+        0 9px;
+
+    color:
+        var(
+            --vscode-button-secondaryForeground,
+            var(
+                --vscode-editor-foreground
+            )
+        );
+
+    background:
+        var(
+            --vscode-button-secondaryBackground,
+            transparent
+        );
+
+    border:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+
+    border-radius:
+        4px;
+
+    cursor:
+        pointer;
+}
+
+button:hover {
+    background:
+        var(
+            --vscode-button-secondaryHoverBackground,
+            rgba(
+                128,
+                128,
+                128,
+                .15
+            )
+        );
+}
+
+button.active {
+    border-color:
+        var(
+            --vscode-focusBorder
+        );
+}
+
+#viewport {
+    position:
+        relative;
+
+    flex:
+        1;
+
+    min-height:
+        0;
+}
+
+canvas {
+    display:
+        block;
+
+    width:
+        100%;
+
+    height:
+        100%;
+}
+
+#loading,
+#error {
+    position:
+        absolute;
+
+    inset:
+        0;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    padding:
+        24px;
+
+    background:
+        var(
+            --vscode-editor-background
+        );
+
+    text-align:
+        center;
+}
+
+#error {
+    display:
+        none;
+
+    color:
+        var(
+            --vscode-errorForeground
+        );
+
+    white-space:
+        pre-wrap;
+}
+
+.spacer {
+    margin-left:
+        auto;
+}
+
+.hidden {
+    display:
+        none !important;
+}
+
+button:disabled {
+    opacity:
+        .5;
+
+    cursor:
+        default;
+
+    background:
+        var(
+            --vscode-button-secondaryBackground,
+            transparent
+        );
+}
+
+#panels {
+    position:
+        absolute;
+
+    top:
+        10px;
+
+    right:
+        10px;
+
+    width:
+        260px;
+
+    max-height:
+        calc(100% - 20px);
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap: 8px;
+
+    pointer-events:
+        none;
+}
+
+.panel {
+    min-height:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    pointer-events:
+        auto;
+
+    background:
+        var(
+            --vscode-editorWidget-background,
+            var(
+                --vscode-sideBar-background,
+                var(
+                    --vscode-editor-background
+                )
+            )
+        );
+
+    border:
+        1px solid
+        var(
+            --vscode-editorWidget-border,
+            var(
+                --vscode-panel-border,
+                rgba(
+                    128,
+                    128,
+                    128,
+                    .3
+                )
+            )
+        );
+
+    border-radius:
+        4px;
+
+    box-shadow:
+        0 2px 8px
+        var(
+            --vscode-widget-shadow,
+            rgba(
+                0,
+                0,
+                0,
+                .35
+            )
+        );
+
+    font-size:
+        12px;
+}
+
+.panel-header {
+    flex: none;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap: 6px;
+
+    padding:
+        6px 8px;
+
+    border-bottom:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+}
+
+.panel-header__title {
+    margin-right:
+        auto;
+
+    font-weight:
+        600;
+}
+
+.panel-header button {
+    min-height:
+        22px;
+
+    padding:
+        0 6px;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap: 4px;
+
+    font-size:
+        11px;
+}
+
+.panel-list {
+    overflow-y:
+        auto;
+
+    padding:
+        4px 0;
+}
+
+.panel-item {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap: 8px;
+
+    padding:
+        4px 8px;
+
+    cursor:
+        pointer;
+
+    user-select:
+        none;
+}
+
+.panel-item:hover {
+    background:
+        var(
+            --vscode-list-hoverBackground,
+            rgba(
+                128,
+                128,
+                128,
+                .15
+            )
+        );
+}
+
+.panel-item.active {
+    color:
+        var(
+            --vscode-list-activeSelectionForeground,
+            inherit
+        );
+
+    background:
+        var(
+            --vscode-list-inactiveSelectionBackground,
+            rgba(
+                128,
+                128,
+                128,
+                .25
+            )
+        );
+}
+
+.panel-item__name {
+    flex: 1;
+
+    min-width:
+        0;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+}
+
+.panel-item__meta {
+    color:
+        var(
+            --vscode-descriptionForeground
+        );
+}
+
+.panel-item .icon,
+.panel-header .icon {
+    flex: none;
+
+    width:
+        16px;
+
+    text-align:
+        center;
+
+    line-height:
+        1;
+}
+
+.icon--play {
+    color:
+        var(
+            --vscode-testing-iconPassed,
+            #3fb950
+        );
+}
+
+.icon--stop {
+    color:
+        var(
+            --vscode-testing-iconFailed,
+            #f85149
+        );
+}
+
+.texture-item {
+    flex-wrap:
+        wrap;
+}
+
+.texture-thumb {
+    flex: none;
+
+    width:
+        32px;
+
+    height:
+        32px;
+
+    border:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+
+    border-radius:
+        2px;
+}
+
+.texture-info {
+    flex: 1;
+
+    min-width:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap: 2px;
+}
+
+.texture-info__row {
+    display:
+        flex;
+
+    gap: 8px;
+}
+
+.texture-usage {
+    color:
+        var(
+            --vscode-descriptionForeground
+        );
+
+    font-size:
+        11px;
+
+    overflow-wrap:
+        anywhere;
+}
+
+.texture-preview {
+    width:
+        100%;
+
+    border:
+        1px solid
+        var(
+            --vscode-panel-border,
+            rgba(
+                128,
+                128,
+                128,
+                .3
+            )
+        );
+
+    border-radius:
+        2px;
+}
+
+.lod-export {
+    flex: none;
+
+    min-height:
+        20px;
+
+    padding:
+        0 6px;
+
+    font-size:
+        11px;
+}

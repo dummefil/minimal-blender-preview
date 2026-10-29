@@ -62,7 +62,9 @@ On the first run, the preview profile is created with a minimal window and the s
 
 The development window opens `samples/suzanne.blend`, a sample with two LODs, two animations and a packed texture. You can open your own `.blend` file as well. If Blender is not detected, set **Minimal Blender Viewer: Blender Path** in the development window's settings.
 
-Saving `src/extension.js` automatically restarts the extension host and reopens the preview in the same window. Preview state such as the selected LOD and camera position resets. If the file has a syntax error, the current version stays running and VS Code shows the error. Changes to `package.json` require restarting F5. No VSIX installation is needed for this workflow.
+Saving a host-side JavaScript file or a viewer file in `src/webview/` automatically restarts the extension host and reopens the preview in the same window; viewer changes are rebuilt first. Preview state such as the selected LOD and camera position resets. If a change has a syntax error, the current version stays running and VS Code shows the error. Changes to `package.json` require restarting F5. No VSIX installation is needed for this workflow.
+
+Run `npm test` for the host-side behavior checks.
 
 ## Publishing
 

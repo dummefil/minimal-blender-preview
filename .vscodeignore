@@ -9,7 +9,9 @@ test/**
 artifacts/**
 samples/**
 
-src/webview.js
+src/webview/**
+dist/webview.js
+dist/three-runtime.js
 
 
 settings.json

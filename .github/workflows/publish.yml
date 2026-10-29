@@ -31,5 +31,6 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       - run: npm ci
       - run: npm run check
+      - run: npm test
       - run: npm run build
       - run: npx vsce publish --oidc
