@@ -3,7 +3,6 @@
 .vscode/**
 .vscode-test/**
 .metrics/**
-ARCHITECTURE.md
 
 node_modules/**
 
