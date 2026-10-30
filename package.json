@@ -22,6 +22,9 @@
     "onCustomEditor:minimalBlenderViewer.blendViewer"
   ],
   "contributes": {
+    "configurationDefaults": {
+      "breadcrumbs.showEditorType": false
+    },
     "customEditors": [
       {
         "viewType": "minimalBlenderViewer.blendViewer",

@@ -38,6 +38,8 @@ Leave **Blender Path** empty to use automatic detection.
 
 Open VS Code Settings and search for **Minimal Blender Viewer** to configure the Blender path, preview cache, export options, grid, and wireframe display.
 
+The extension hides VS Code's editor type selector in breadcrumbs by default, including for other editors. Set `"breadcrumbs.showEditorType": true` in VS Code settings to show it again.
+
 ## Animations
 
 Blender actions are exported as animation clips (disable with **Export Animations**). When a file contains animations, an **Animations** panel lists every clip and the first one starts playing: click a clip to play or stop it, or use **Play All** / **Stop All**. Several clips can play at the same time.
