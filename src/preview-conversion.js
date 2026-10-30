@@ -14,7 +14,8 @@ function createPreviewConverter(ports) {
 const { prepareCache, inspectSource, cachePath, hashFingerprint, fileExists, touch, exportBlend, cleanupCache } = ports;
 return async function convertBlendToGlb(
     sourcePath,
-    settings
+    settings,
+    onQuickPreview
 ) {
 
     prepareCache(
@@ -28,6 +29,7 @@ return async function convertBlendToGlb(
 
     const fingerprint =
         JSON.stringify({
+            exportVersion: 2,
             sourcePath,
             modified:
                 stat.mtimeMs,
@@ -92,7 +94,11 @@ return async function convertBlendToGlb(
         sourcePath,
         outputPath,
         settings,
-        cacheKey
+        cacheKey,
+        null,
+        onQuickPreview && settings.exportMaterials
+            ? outputPath => onQuickPreview({ outputPath, settings, fromCache: false })
+            : undefined
     );
 
     if (
@@ -108,7 +114,10 @@ return async function convertBlendToGlb(
     await cleanupCache(
         settings,
         new Set([
-            outputPath
+            outputPath,
+            ...(onQuickPreview && settings.exportMaterials
+                ? [cachePath(settings.cacheDirectory, `${cacheKey}.quick.glb`)]
+                : [])
         ])
     );
 

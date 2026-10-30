@@ -38,6 +38,8 @@ Leave **Blender Path** empty to use automatic detection.
 
 Open VS Code Settings and search for **Minimal Blender Viewer** to configure the Blender path, preview cache, export options, grid, and wireframe display.
 
+For preview, materials with a legacy MixRGB node directly connected to Principled Base Color are baked using the active UV map. The model appears first while its colors are prepared, with a small progress indicator. Completed previews are cached, so reopening an unchanged file reuses the result. Overlapping UVs or view-dependent shaders may not reproduce the original appearance accurately.
+
 The extension hides VS Code's editor type selector in breadcrumbs by default, including for other editors. Set `"breadcrumbs.showEditorType": true` in VS Code settings to show it again.
 
 ## Animations

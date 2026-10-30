@@ -31,3 +31,22 @@ test('a successful Blender exit without an output file reports an error', async 
     });
     await assert.rejects(convert('/source.blend', { cacheDirectory: '/cache' }), /no GLB preview was created/);
 });
+
+test('a quick preview is delivered before the final export finishes', async () => {
+    const files = new Set();
+    const events = [];
+    const convert = createPreviewConverter({
+        prepareCache() {}, inspectSource: () => ({ mtimeMs: 1, size: 2 }),
+        hashFingerprint: () => 'key', cachePath: (directory, name) => `${directory}/${name}`,
+        fileExists: file => files.has(file), touch() {}, cleanupCache: async () => {},
+        exportBlend: async (_source, output, _settings, _key, _lod, progress) => {
+            files.add('/cache/key.quick.glb');
+            progress('/cache/key.quick.glb');
+            events.push('baking');
+            files.add(output);
+        }
+    });
+    const result = await convert('/source.blend', { cacheDirectory: '/cache', exportMaterials: true }, quick => events.push(quick.outputPath));
+    events.push(result.outputPath);
+    assert.deepEqual(events, ['/cache/key.quick.glb', 'baking', '/cache/key.glb']);
+});

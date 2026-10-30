@@ -1,4 +1,6 @@
-// Creates the Python program passed to Blender; it performs no I/O itself.
+// Creates the Python program passed to Blender.
+const fs = require('fs');
+const path = require('path');
 /*
  * lodLevel limits the export to one level
  * of detail: objects with a different
@@ -8,7 +10,8 @@
 function buildExportScript(
     outputPath,
     settings,
-    lodLevel = null
+    lodLevel = null,
+    quickPath = null
 ) {
     const safeOutputPath =
         JSON.stringify(
@@ -23,6 +26,8 @@ import bpy
 import re
 import traceback
 
+${fs.readFileSync(path.join(__dirname, 'bake-preview-materials.py'), 'utf8')}
+
 output_path = ${safeOutputPath}
 
 lod_level = ${
@@ -32,6 +37,8 @@ lod_level = ${
         ? lodLevel
         : 'None'
 }
+
+quick_path = ${quickPath ? JSON.stringify(quickPath.replace(/\\/g, '/')) : 'None'}
 
 requested = {
     "filepath": output_path,
@@ -120,6 +127,17 @@ try:
         in requested.items()
         if key in properties
     }
+
+    if quick_path and any(obj.type == 'MESH' and obj.visible_get() and
+            any(needs_color_bake(slot.material) for slot in obj.material_slots)
+            for obj in bpy.context.view_layer.objects):
+        quick_kwargs = dict(kwargs, filepath=quick_path)
+        if bpy.ops.export_scene.gltf(**quick_kwargs) != {'FINISHED'}:
+            raise RuntimeError('Quick preview export failed')
+        print('[MinimalBlenderViewer] QUICK_PREVIEW_READY', flush=True)
+
+    if lod_level is None and requested["export_materials"] == "EXPORT":
+        bake_preview_materials()
 
     print(
         "[MinimalBlenderViewer] Export args:",

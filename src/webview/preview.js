@@ -616,39 +616,82 @@ const animations = createAnimations({ getRoot: () => root, playIcon: PLAY_ICON, 
 const lods = createLods({ getRoot: () => root, updateStats });
 const textures = createTextures({ getRoot: () => root });
 
+const progress = document.getElementById('preview-progress');
+function setProgress(text, busy = false) {
+    progress.textContent = text;
+    progress.classList.toggle('busy', busy);
+}
+if (config.progressive) setProgress('Preparing textures…', true);
+
+window.addEventListener('message', event => {
+    const message = event.data;
+    if (message?.generation !== config.generation) return;
+    if (message.type === 'finalPreviewError') {
+        setProgress('Texture preparation failed: ' + message.message);
+        return;
+    }
+    if (message.type !== 'finalPreview') return;
+    setProgress('Loading textures…', true);
+    loader.load(message.url, gltf => {
+        if (!root) {
+            installInitialModel(gltf);
+            errorBox.style.display = 'none';
+            setProgress('');
+            return;
+        }
+        const currentMeshes = [];
+        const finalMeshes = [];
+        root.traverse(object => { if (object.isMesh) currentMeshes.push(object); });
+        gltf.scene.traverse(object => { if (object.isMesh) finalMeshes.push(object); });
+        if (currentMeshes.length !== finalMeshes.length ||
+            currentMeshes.some((mesh, index) => mesh.name !== finalMeshes[index].name)) {
+            setProgress('Texture update failed: model changed.');
+            return;
+        }
+        const oldMaterials = new Set();
+        const unusedGeometry = new Set();
+        currentMeshes.forEach((mesh, index) => {
+            for (const material of (Array.isArray(mesh.material) ? mesh.material : [mesh.material])) {
+                if (material) oldMaterials.add(material);
+            }
+            mesh.material = finalMeshes[index].material;
+            unusedGeometry.add(finalMeshes[index].geometry);
+        });
+        const oldTextures = new Set();
+        for (const material of oldMaterials) {
+            for (const value of Object.values(material)) if (value?.isTexture) oldTextures.add(value);
+            material.dispose();
+        }
+        for (const texture of oldTextures) texture.dispose();
+        for (const geometry of unusedGeometry) geometry?.dispose();
+        setWireframe(wireframe);
+        textures.setup();
+        updateStats();
+        setProgress('');
+    }, undefined, error => setProgress('Texture loading failed: ' + (error?.message || String(error))));
+});
+
 const loader =
     new GLTFLoader();
 
+function installInitialModel(gltf) {
+    root = gltf.scene;
+    scene.add(root);
+    lods.setup();
+    textures.setup();
+    updateStats();
+    setWireframe(wireframe);
+    fitModel();
+    animations.setup(gltf.animations);
+    loading.style.display = 'none';
+}
 
 loader.load(
     MODEL_SRC,
 
     gltf => {
-        root =
-            gltf.scene;
-
-        scene.add(
-            root
-        );
-
-        lods.setup();
-
-        textures.setup();
-
-        updateStats();
-
-        setWireframe(
-            wireframe
-        );
-
-        fitModel();
-
-        animations.setup(
-            gltf.animations
-        );
-
-        loading.style.display =
-            'none';
+        installInitialModel(gltf);
+        if (config.progressive) lods.postMessage({ type: 'previewReady', generation: config.generation });
     },
 
     undefined,
@@ -663,6 +706,7 @@ loader.load(
         errorBox.textContent =
             error?.message ||
             String(error);
+        if (config.progressive) lods.postMessage({ type: 'previewReady', generation: config.generation });
     }
 );
 

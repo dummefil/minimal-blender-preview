@@ -426,5 +426,5 @@ lodsButton
 
 
 
-return { setup: setupLods };
+return { setup: setupLods, postMessage: message => vscodeApi?.postMessage(message) };
 }

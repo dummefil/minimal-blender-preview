@@ -151,7 +151,8 @@ function findBlender(settings) {
 function runProcess(
     command,
     args,
-    timeoutMs
+    timeoutMs,
+    onQuickPreview
 ) {
     return new Promise(
         (resolve, reject) => {
@@ -159,6 +160,7 @@ function runProcess(
             let stderr = '';
 
             let finished = false;
+            let notified = false;
 
             const child = spawn(
                 command,
@@ -193,6 +195,10 @@ function runProcess(
                             stdout +
                             data.toString()
                         );
+                    if (!notified && onQuickPreview && stdout.includes('[MinimalBlenderViewer] QUICK_PREVIEW_READY')) {
+                        notified = true;
+                        onQuickPreview();
+                    }
                 }
             );
 
@@ -305,7 +311,8 @@ async function runBlenderExport(
     outputPath,
     settings,
     scratchName,
-    lodLevel = null
+    lodLevel = null,
+    onQuickPreview
 ) {
     ensureDirectory(
         settings.cacheDirectory
@@ -348,7 +355,8 @@ async function runBlenderExport(
         buildExportScript(
             outputPath,
             settings,
-            lodLevel
+            lodLevel,
+            onQuickPreview ? path.join(settings.cacheDirectory, `${scratchName}.quick.glb`) : null
         ),
         'utf8'
     );
@@ -372,6 +380,8 @@ async function runBlenderExport(
     args.push(
         '--background',
         inputPath,
+        '--python-exit-code',
+        '1',
         '--python',
         pythonScriptPath
     );
@@ -385,7 +395,8 @@ async function runBlenderExport(
                 settings
                     .blenderTimeoutSeconds
             ) *
-                1000
+                1000,
+            onQuickPreview ? () => onQuickPreview(path.join(settings.cacheDirectory, `${scratchName}.quick.glb`)) : undefined
         );
     } finally {
         try {

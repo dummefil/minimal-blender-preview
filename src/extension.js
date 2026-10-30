@@ -34,8 +34,8 @@ class BlendDocument {
     dispose() {}
 }
 
-async function convertBlendToGlb(fileUri) {
-    return createPreview(fileUri.fsPath, getSettings(fileUri));
+async function convertBlendToGlb(fileUri, onQuickPreview) {
+    return createPreview(fileUri.fsPath, getSettings(fileUri), onQuickPreview);
 }
 
 async function renderPreview(
@@ -55,23 +55,16 @@ async function renderPreview(
         document
     } = record;
 
+    record.viewerReady = false;
+    record.pendingPreview = null;
+    let quickShown = false;
+
     try {
         panel.webview.html =
             buildLoadingHtml();
 
-        const result =
-            await convertBlendToGlb(
-                document.uri
-            );
-
-        if (
-            record.disposed ||
-            generation !==
-                record.generation
-        ) {
-            return;
-        }
-
+        const showViewer = (result, progressive) => {
+        if (record.disposed || generation !== record.generation) return;
         const cacheUri =
             vscode.Uri.file(
                 result.settings
@@ -120,8 +113,28 @@ async function renderPreview(
                 {
                     script: vscode.Uri.joinPath(record.runtimeDirectory, 'preview.js'),
                     style: vscode.Uri.joinPath(record.runtimeDirectory, 'preview.css')
-                }
+                },
+                { progressive, generation }
             );
+        };
+
+        const result = await convertBlendToGlb(document.uri, quick => {
+            if (record.disposed || generation !== record.generation) return;
+            quickShown = true;
+            showViewer(quick, true);
+        });
+        if (record.disposed || generation !== record.generation) return;
+        if (!quickShown) {
+            showViewer(result, false);
+        } else {
+            record.pendingPreview = {
+                type: 'finalPreview', generation,
+                url: panel.webview.asWebviewUri(vscode.Uri.file(result.outputPath)).toString()
+            };
+            if (record.viewerReady) {
+                panel.webview.postMessage(record.pendingPreview);
+            }
+        }
     } catch (error) {
         if (
             record.disposed ||
@@ -131,10 +144,15 @@ async function renderPreview(
             return;
         }
 
-        panel.webview.html =
-            buildErrorHtml(
-                error
-            );
+        if (quickShown) {
+            const message = { type: 'finalPreviewError', generation, message: error.message || String(error) };
+            record.pendingPreview = message;
+            if (record.viewerReady) {
+                panel.webview.postMessage(message);
+            }
+        } else {
+            panel.webview.html = buildErrorHtml(error);
+        }
     }
 }
 
@@ -249,11 +267,16 @@ class BlendViewerProvider {
         const messageListener =
             panel.webview
                 .onDidReceiveMessage(
-                    message =>
-                        handleWebviewMessage(
-                            record,
-                            message
-                        )
+                    message => {
+                        if (message?.type === 'previewReady' && message.generation === record.generation) {
+                            record.viewerReady = true;
+                            if (record.pendingPreview) {
+                                panel.webview.postMessage(record.pendingPreview);
+                            }
+                        } else {
+                            handleWebviewMessage(record, message);
+                        }
+                    }
                 );
 
         panel.onDidDispose(

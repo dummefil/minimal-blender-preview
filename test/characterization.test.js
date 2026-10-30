@@ -79,7 +79,7 @@ test('a cached preview is reused without starting Blender', async () => {
         fs.writeFileSync(sourcePath, 'source');
         overrides.cacheDirectory = directory;
         const stat = fs.statSync(sourcePath);
-        const fingerprint = JSON.stringify({ sourcePath, modified: stat.mtimeMs, size: stat.size, exportApplyModifiers: true, exportMaterials: true, exportAnimations: true, exportCameras: false, exportLights: false });
+        const fingerprint = JSON.stringify({ exportVersion: 2, sourcePath, modified: stat.mtimeMs, size: stat.size, exportApplyModifiers: true, exportMaterials: true, exportAnimations: true, exportCameras: false, exportLights: false });
         const key = require('node:crypto').createHash('sha1').update(fingerprint).digest('hex').slice(0, 20);
         const outputPath = path.join(directory, `${key}.glb`);
         fs.writeFileSync(outputPath, 'cached');

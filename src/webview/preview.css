@@ -33,6 +33,31 @@ body {
         column;
 }
 
+#preview-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+#preview-progress.busy::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--vscode-descriptionForeground, #aaa);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: preview-spin .8s linear infinite;
+}
+
+@keyframes preview-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    #preview-progress.busy::before { animation: none; }
+}
+
 #toolbar,
 #status {
     flex: none;

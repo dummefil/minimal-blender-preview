@@ -99,7 +99,8 @@ function buildViewerHtml(
     webview,
     glbUri,
     settings,
-    assets
+    assets,
+    progress = {}
 ) {
     const modelSource =
         webview
@@ -231,6 +232,8 @@ function buildViewerHtml(
         >
             Textures
         </button>
+
+        <span id="preview-progress" role="status"></span>
 
     </div>
 
@@ -368,6 +371,8 @@ function buildViewerHtml(
     wireframe: Boolean(settings.wireframe),
     background: settings.background,
     cameraFov: fov,
+    progressive: Boolean(progress.progressive),
+    generation: progress.generation,
     playIcon: PLAY_ICON,
     stopIcon: STOP_ICON
 }).replace(/</g, '\\u003c')};</script>
