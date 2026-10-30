@@ -60,7 +60,7 @@ If a file opens in another editor, right-click its editor tab, select **Reopen E
 
 ## Development
 
-Open this repository folder in VS Code, select **Run Blender Preview** in **Run and Debug**, and press **F5**. The task opens an isolated Extension Development Host and attaches the debugger. Its settings and installed extensions are kept separately under `.vscode-test/`. Close the preview window after stopping debugging before starting another session.
+Open this repository folder in VS Code, select **Run Blender Preview** in **Run and Debug**, and press **F5**. The task opens an isolated Extension Development Host and attaches the debugger. Its settings and installed extensions are kept separately under `.vscode-test/`. Closing the preview window ends debugging after the reconnect attempts stop. Close the preview window after stopping debugging before starting another session.
 
 On the first run, the preview profile is created with a minimal window and the standard VS Code shortcuts disabled. Existing profile settings and keybindings are preserved on later runs. The supplied shortcut list was generated from VS Code on Windows; additional shortcuts may exist on other versions or platforms.
 

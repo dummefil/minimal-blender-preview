@@ -7,7 +7,10 @@
             "request": "attach",
             "address": "127.0.0.1",
             "port": 9330,
-            "restart": true,
+            "restart": {
+                "delay": 1000,
+                "maxAttempts": 10
+            },
             "timeout": 30000,
             "preLaunchTask": "Start isolated Blender Preview"
         }
